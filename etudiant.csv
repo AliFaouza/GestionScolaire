@@ -1,0 +1,4 @@
+id_etudiant,prenom,nom,addresse,numéro_tel,genre,code_option,age,email,id_filière
+10,anchouroi,bacar,mororni,06785432,F,,24,anchouroi@gmail.com,
+11,bob,bobi,new york,234455,H,1,22,contact@gmail.Com,3
+14,Soule,Hassani,2 allée de valmy 93330,0767001731,H,3,30,soule@gmail.com,2
