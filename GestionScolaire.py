@@ -8,11 +8,6 @@ from Tabledonnéefilière import mytablefiliere,tbfiliere,calldbfiliere
 from Tabledonéeoption import mytableoption,tboption,calldboption
 from Tableaudonnéematiere import mytablematiere,tbmatiere,calldbmatiere
 from Tabledonéeepreuve import mytableepreuve,tbepreuve,calldbepreuve
-import matplotlib
-import matplotlib.pyplot as plt
-from flet.matplotlib_chart import MatplotlibChart
-
-matplotlib.use("svg")
 
 # Etablir une connection
 connexion = sqlite3.connect('GestionScolaire_utf8.db', check_same_thread=False)
@@ -517,27 +512,6 @@ def main(page:ft.page):
         )
     )
     
-    def generate_graph():
-    # Récupérez les données
-        cursor = connexion.cursor()
-        cursor.execute('SELECT age, moyenne FROM etudiant')  # Remplacez par votre requête SQL appropriée
-        data = cursor.fetchall()
-    
-    # Séparez les données en deux listes (âge et moyenne)
-        age = [row[0] for row in data]
-        moyenne = [row[1] for row in data]
-
-    # Créez le graphe
-        plt.figure()
-        plt.plot(age, moyenne, 'o')  # Utilisez le type de graphique approprié, par exemple 'o' pour des points
-    
-        plt.xlabel('Âge')
-        plt.ylabel('Moyenne')
-        plt.title('Graphe d\'analyse des étudiants')
-
-    # Affichez le graphe
-        plt.show()
-    generate_graph()
     page.add(
         
     Column([
