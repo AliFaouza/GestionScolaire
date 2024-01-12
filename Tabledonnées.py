@@ -15,7 +15,8 @@ tb = DataTable(
         DataColumn(Text("Option")),
         DataColumn(Text("email")),
         DataColumn(Text("Age")),
-         DataColumn(Text("Filière")),
+        DataColumn(Text("Filière")),
+        
     ],
     rows =[]
 )
@@ -73,21 +74,21 @@ def hidedlg(e):
 def saveandupdate(e):
     try:
         # Récupération du nom de la filière / de l'intitulé de l'option sélectionnée
-        nom_filiere = filiere_modif.value
         intitule_option = option_modif.value
-
+        nom_filiere = filiere_modif.value
         # Récupération de l'ID correspondant au nom de la filière
         cursor = connexion.cursor()
-        cursor.execute('SELECT id_filière FROM "filiere" WHERE "nom_filiere" = ?', (nom_filiere,))
-        result = cursor.fetchone()
-        if result:
-            filiere_id_modif = result[0]
-
+        
         # Récupérer l'ID correspondant à l'intitulé de l'option
         cursor.execute('SELECT code_option FROM "option" WHERE "intitulé" = ?', (intitule_option,))
         result = cursor.fetchone()
         if result:
             option_id_modif = result[0]
+
+        cursor.execute('SELECT id_filière FROM "filiere" WHERE "nom_filiere" = ?', (nom_filiere,))
+        result = cursor.fetchone()
+        if result:
+            filiere_id_modif = result[0]
 
         myid = id_modif.value
         cursor.execute("""UPDATE etudiant SET prenom=?, nom=?, addresse=?,

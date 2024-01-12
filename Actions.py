@@ -51,24 +51,22 @@ def create_table_etudiant():
         id_filière INTEGER
         age INTEGER, 
         email TEXT, 
-        num_etudiant INTEGER,
         moyenne NUMERIC,
         FOREIGN KEY(code_option) REFERENCES option(code_option),
         FOREIGN KEY(id_filière) REFERENCES filiere(id_filière)
         )""")
     connexion.commit()
     
-   # Création d'un déclencheur pour incrémenter num_etudiant après chaque insertion
-    cursor.execute("""CREATE TRIGGER IF NOT EXISTS increment_num_etudiant
-        AFTER INSERT ON etudiant
-        BEGIN
-            -- Mise à jour de num_etudiant avec la prochaine valeur de la séquence
-            UPDATE etudiant
-            SET num_etudiant = (SELECT seq FROM sqlite_sequence WHERE name='etudiant') + 1
-            WHERE id_etudiant = new.id_etudiant;
-        END""")
+    # Après la création de la table "epreuve", exécuter une requête pour mettre à jour la colonne "moyenne" dans la table "etudiant"
+    cursor.execute("""UPDATE etudiant
+                      SET moyenne = (
+                          SELECT SUM(e.note * m.coefficient) / SUM(m.coefficient)
+                          FROM epreuve e
+                          INNER JOIN matiere m ON e.id_matiere = m.id_matiere
+                          WHERE e.id_etudiant = etudiant.id_etudiant
+                      )""")
     connexion.commit()
-
+    
 def create_table_matiere():
     cursor = connexion.cursor()
     cursor.execute("""CREATE TABLE IF NOT EXISTS matiere (
@@ -93,5 +91,6 @@ def create_table_epreuve():
         FOREIGN KEY(id_etudiant) REFERENCES etudiant(id_etudiant)
         )""")
     connexion.commit()
+   
     
     

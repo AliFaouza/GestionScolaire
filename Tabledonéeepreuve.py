@@ -62,18 +62,18 @@ def hidedlgepreuve(e):
 def saveandupdate(e):
     try:
         # Récupération du nom de la filière / de l'intitulé de l'option sélectionnée
-        option= matiere_modif .value
+        matiere = matiere_modif .value
         etudiant = etudiant_modif.value
 
         # Récupération de l'ID correspondant au nom de la filière
         cursor = connexion.cursor()
-        cursor.execute('SELECT id_matiere FROM "matiere" WHERE "nom_matiere" = ?', ( option,))
+        cursor.execute('SELECT id_matiere FROM "matiere" WHERE "nom_matiere" = ?', (matiere,))
         result = cursor.fetchone()
         if result:
-            option_id_modif = result[0]
+            matiere_id_modif = result[0]
 
         # Récupérer l'ID correspondant à l'intitulé de l'option
-        cursor.execute('SELECT etudiant FROM "etudiant" WHERE  "prenom" = ?', (etudiant,))
+        cursor.execute('SELECT id_etudiant FROM "etudiant" WHERE  "prenom" = ?', (etudiant,))
         result = cursor.fetchone()
         if result:
             etudiant_id_modif = result[0]
@@ -81,7 +81,7 @@ def saveandupdate(e):
         myid = id_modif.value
         cursor.execute("""UPDATE epreuve SET id_matiere=?, id_etudiant=?, date_epreuve=?,
                       note=?,type=? WHERE id_epreuve=?""",
-                       (option_id_modif, etudiant_id_modif, date_modif.value,
+                       (matiere_id_modif, etudiant_id_modif, date_modif.value,
                         note_modif.value, type_modif.value, myid))
         connexion.commit()
         print("Modifié avec succès")
@@ -97,6 +97,7 @@ def saveandupdate(e):
         
     except Exception as e:
         print(e)
+        
 #Création d'une fenêtre/boîte de dialogue pour effectuer des modifications
 dlgepreuve = Container(
     bgcolor = ft.colors.AMBER,
@@ -123,7 +124,7 @@ def showedit(e):
     id_modif.value = data_edit['id_epreuve']
     matiere_modif.value = data_edit.get('nom_matiere','')
     etudiant_modif.value = data_edit.get('prenom','')
-    date_modif.value = data_edit['dat_epreuve']
+    date_modif.value = data_edit['date_epreuve']
     note_modif.value = data_edit['note']
     type_modif.value = data_edit['type']
   
@@ -158,7 +159,7 @@ def calldbepreuve():
     
     #S'il y a des données, alors insérer la table dans la ligne du widget de tableau
     if not epreuve =="":
-        keys = ['id_matiere','id_etudiant','type','date_epreuve','note']
+        keys = ['id_epreuve','id_matiere','id_etudiant','date_epreuve','note','type']
         #Extraire les données de la table pour les convertir en un dictionnaire en Python.
         result = [dict(zip(keys,values)) for values in epreuve]
         for x in result:
@@ -191,12 +192,12 @@ def calldbepreuve():
                             ),
                         
                         IconButton(icon="delete", icon_color="red",icon_size=20, 
-                                   data=x.get('id_epreuve', None), 
+                                   data=x['id_epreuve'], 
                                    on_click=showdelete )
                         ])), 
                         DataCell(Text(matiere)),
                         DataCell(Text(etudiant)),
-                        DataCell(Text(str(x["date_epreuve"]))),
+                        DataCell(Text(x["date_epreuve"])),
                         DataCell(Text(x["note"])),
                         DataCell(Text(x["type"])),                       
                                   

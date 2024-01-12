@@ -7,19 +7,19 @@ connexion = sqlite3.connect('GestionScolaire_utf8.db', check_same_thread=False)
 tbmatiere = DataTable(
     columns = [
         DataColumn(Text("Matières")),
-        DataColumn(Text("Options")),
-        DataColumn(Text("Matiere")),
+        DataColumn(Text("Intitulé")),
+        DataColumn(Text("Option")),
         DataColumn(Text("Coef")),
     ],
     rows =[]
 )
 
-# Exécution de cette requête SQL pour récupérer les noms des filieres de la table "filiere"
+ # Exécution de cette requête SQL pour récupérer les intitulés de la table "option"   
 def recupnomoption():
         cursor = connexion.cursor()
         cursor.execute('SELECT code_option, "intitulé" FROM "option"')
         result = cursor.fetchall()
-        # Récupéreration des valeurs de la colonne "intitulé" et associer les codes d'option
+        # Récupérer les valeurs de la colonne "intitulé" et associer les codes d'option
         options = {row[1]: row[0] for row in result}
         return options
     
@@ -32,31 +32,30 @@ dropdown_options = [ft.dropdown.Option(option, option) for option in options]
 
 #Création d'un champ de texte pour obtenir les données de la ligne sélectionnée en tant que paramètre
 id_modif = Text()
-options_modif = Dropdown(label="Intitulé", options=dropdown_options)
-matière_modif = TextField(label="Matière")
-coef_modif = TextField(label="Coef")
+intitule_modif = TextField(label="Matière")
+option_modif = Dropdown(label="Options", options=dropdown_options)
+coef_modif = TextField(label="Coefficient")
 
 def hidedlg(e):
     #Masquer en cas d'annulation de la modification
     dlgmatiere.visible = False
     dlgmatiere.update()
     
-def updatematiere():
+def updatematiere(e):
     try:
-        # Récupération du nom de l'intitulé de l'option sélectionnée
-        nom_option = options_modif.value
+        # Récupération du nom de la filière / de l'intitulé de l'option sélectionnée
+        nom_option = option_modif.value
         
-        # Récupéreration de l'ID correspondant à l'intitulé de l'option
+        # Récupération de l'ID correspondant au nom de la filière
         cursor = connexion.cursor()
         cursor.execute('SELECT code_option FROM "option" WHERE "intitulé" = ?', (nom_option,))
         result = cursor.fetchone()
         if result:
-                option_id = result[0]
-          #insertion dans la base de donnée
+            optionid_modif = result[0]
 
         myid = id_modif.value
-        cursor.execute("""UPDATE matiere SET code_option=?, nom_matiere=?, coef=? WHERE id_matiere=?""",
-               (option_id , matière_modif.value.upper(), coef_modif.value, myid))
+        cursor.execute("""UPDATE matiere SET nom_matiere=?, code_option=?, coefficient=? WHERE id_matiere=?""",
+               (intitule_modif.value.upper(), optionid_modif,coef_modif .value, myid))
         connexion.commit()
         print("Modifié avec succès")
 
@@ -70,6 +69,7 @@ def updatematiere():
         tbmatiere.update()
     except Exception as e:
         print(e)
+        
 #Création d'une fenêtre/boîte de dialogue pour effectuer des modifications
 dlgmatiere = Container(
     bgcolor = ft.colors.AMBER,
@@ -81,8 +81,8 @@ dlgmatiere = Container(
         IconButton(icon= "close", on_click=hidedlg)
         ]),
         #Ajout d'un widget comme un champ texte pour la modification
-        options_modif,
-        matière_modif,
+        intitule_modif,
+        option_modif,
         coef_modif,
         ElevatedButton("Enregistrer la modification", on_click = updatematiere),   
     ])
@@ -92,8 +92,7 @@ def showedit(e):
     #Récupération de data=x à partir de ICONBUTTON
     data_edit = e.control.data
     id_modif.value = data_edit['id_matiere']
-    options_modif .value = data_edit.get('intitulé','')
-    matière_modif.value = data_edit['nom_matiere']
+    intitule_modif.value = data_edit.get('code_option','')
     coef_modif.value = data_edit['coefficient']
     
     #Affichage d'une fenetre pour la modification
@@ -127,15 +126,15 @@ def calldbmatiere():
     
     # S'il y a des données, alors insérer la table dans la ligne du widget de tableau
     if matieres:
-        keys = ['code_option','nom_matiere', 'coefficient']
+        keys = ['id_matiere', 'nom_matiere', 'code_option', 'coefficient']
         # Extraire les données de la table pour les convertir en un dictionnaire en Python.
         result = [dict(zip(keys, values)) for values in matieres]
         for x in result:   
-            # Récupérer le nom de l'option correspondant à l'id_option
+            # Récupérer le nom de la filière correspondant à l'id_filière
             cursor.execute('SELECT "intitulé" FROM "option" WHERE code_option = ?', (x['code_option'],))
             option_result = cursor.fetchone()
             if option_result:
-                nom_option = option_result[0]
+                nom_option= option_result[0]
             else:
                 nom_option = ""
                 
@@ -152,12 +151,13 @@ def calldbmatiere():
                                        ),
                         
                             IconButton(icon="delete", icon_color="red", icon_size=20, 
-                                       data=x.get('id_matiere', None), 
+                                       data=x['id_matiere'], 
                                        on_click=showdelete)
                         ])),
+                        DataCell(Text(x['nom_matiere'])),
                         DataCell(Text(nom_option)),
-                        DataCell(Text(x["nom_matiere"])),
-                        DataCell(Text(x["coefficient"]))
+                        DataCell(Text(x['coefficient']))
+                       
                     ]
                 )
             )
@@ -173,7 +173,7 @@ dlgmatiere.visible = False
 
 
 #Afficher la table
-mytablmatiere = Column([
+mytablematiere = Column([
     dlgmatiere,
     Row([tbmatiere], scroll = "always")
 ])
